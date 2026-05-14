@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro v2.0</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>Gestor Proporcional v2.1</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; }
         body { padding-bottom: 2rem; background-color: #f4f7f6; }
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
-        
-        @media (max-width: 600px) {
-          .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
-            ins { font-size: 1.8rem; }
-        }
-
-      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-      .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
-      .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; }
-      .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-      .name-input { font-weight: bold; color: #2c3e50; border: none; border-bottom: 2px solid #2ecc71; margin-bottom: 10px; width: 100%; background: #fff; padding: 5px; }
-      .btn-save { background-color: #2ecc71; border: none; font-weight: bold; }
+        @media (max-width: 600px) {.grid-inputs,.grid-form { grid-template-columns: 1fr!important; } }
+       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+       .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+       .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; }
+       .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+       .name-input { font-weight: bold; color: #2c3e50; border: none; border-bottom: 2px solid #2ecc71; margin-bottom: 10px; width: 100%; padding: 5px; }
+       .btn-save { background-color: #2ecc71; border: none; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body class="container">
@@ -48,12 +47,12 @@
                         <input type="number" id="rendaV2" oninput="app.autoSalvar()">
                     </div>
                 </div>
-                <button class="btn-save" onclick="app.forcarSalvar()">💾 SALVAR E FIXAR TUDO</button>
+                <button class="btn-save" onclick="app.forcarSalvar()">💾 SALVAR AGORA</button>
             </article>
         </section>
 
         <section id="fixos">
-            <details open>
+            <details>
                 <summary role="button" class="outline">2. Contas Fixas do Mês</summary>
                 <div id="listaFixos"></div>
                 <hr>
@@ -84,7 +83,6 @@
                     <button type="submit" class="contrast" style="margin-bottom: 4px;">Lançar</button>
                 </div>
             </form>
-            
             <details>
                 <summary>Ver Histórico e Opções</summary>
                 <div id="listaCotidiano"></div>
@@ -95,45 +93,36 @@
 
     <script>
         const app = {
-            state: {
-                n1: "Pessoa 1", n2: "Pessoa 2",
-                r1: 2000, r2: 5000,
-                fixos:,
-                cotidiano:
-            },
+            isInitializing: true, // Trava de segurança contra race conditions
+            state: { n1: "Pessoa 1", n2: "Pessoa 2", r1: 2000, r2: 5000, fixos:, cotidiano: },
 
             init() {
-                // Carregamento prioritário
-                const salvo = localStorage.getItem('meu_gestor_v2_final');
-                if (salvo) {
-                    this.state = JSON.parse(salvo);
-                }
+                const salvo = localStorage.getItem('elvis_gestor_v21');
+                if (salvo) { this.state = JSON.parse(salvo); }
 
-                // Injeta os valores nos inputs IMEDIATAMENTE
+                // Carregamento forçado dos inputs
                 document.getElementById('nomeV1').value = this.state.n1;
                 document.getElementById('nomeV2').value = this.state.n2;
                 document.getElementById('rendaV1').value = this.state.r1;
                 document.getElementById('rendaV2').value = this.state.r2;
 
+                this.isInitializing = false; // Destrava o salvamento
                 this.update();
             },
 
             autoSalvar() {
+                if (this.isInitializing) return;
                 this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
                 this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
                 this.state.r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
                 this.state.r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
-                this.saveToDisk();
+                localStorage.setItem('elvis_gestor_v21', JSON.stringify(this.state));
                 this.update();
             },
 
             forcarSalvar() {
                 this.autoSalvar();
-                alert("As configurações de " + this.state.n1 + " e " + this.state.n2 + " foram salvas com sucesso!");
-            },
-
-            saveToDisk() {
-                localStorage.setItem('meu_gestor_v2_final', JSON.stringify(this.state));
+                alert("Dados fixados com sucesso!");
             },
 
             getCiclo() {
@@ -149,76 +138,41 @@
                 const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
                 const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
                 const totalSalarios = this.state.r1 + this.state.r2;
-
                 const p1 = totalSalarios > 0? (this.state.r1 / totalSalarios) : 0;
                 const p2 = 1 - p1;
-
                 const hoje = new Date();
                 hoje.setHours(0,0,0,0);
-                const diasRestantes = Math.max(1, Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24)));
-                const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
-                const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
+                const diasRestantes = Math.max(1, Math.ceil((fim - hoje) / (86400000)));
+                const diario = Math.max(0, (totalSalarios - totalFixos - totalCotidiano) / diasRestantes);
 
                 document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-                
-                document.getElementById('infoDivisao').innerHTML = `
-                    <hr>
-                    <strong>Total Contas Fixas: R$ ${totalFixos.toFixed(2)}</strong><br>
-                    ${this.state.n1} paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong> (${(p1*100).toFixed(0)}%)<br>
-                    ${this.state.n2} paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong> (${(p2*100).toFixed(0)}%)<br>
-                    <hr>
-                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong></small>
-                `;
-                
+                document.getElementById('infoDivisao').innerHTML = `<hr><strong>Fixos: R$ ${totalFixos.toFixed(2)}</strong><br>${this.state.n1}: R$ ${(totalFixos * p1).toFixed(2)} | ${this.state.n2}: R$ ${(totalFixos * p2).toFixed(2)}<br><hr><small>Faltam ${diasRestantes} dias.</small>`;
                 this.render('listaFixos', 'fixos');
                 this.render('listaCotidiano', 'cotidiano');
             },
 
             addItem(e, tipo) {
                 e.preventDefault();
-                const descId = tipo === 'fixos'? 'descFixo' : 'descCotidiano';
-                const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
-                const desc = document.getElementById(descId).value;
-                const valor = parseFloat(document.getElementById(valId).value) || 0;
+                const desc = document.getElementById(tipo === 'fixos'? 'descFixo' : 'descCotidiano').value;
+                const valor = parseFloat(document.getElementById(tipo === 'fixos'? 'valFixo' : 'valCotidiano').value) || 0;
                 if(!desc && tipo === 'fixos') return;
-
                 this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString('pt-BR') });
-                document.getElementById(descId).value = '';
-                document.getElementById(valId).value = '';
-                this.saveToDisk();
-                this.update();
+                this.autoSalvar();
             },
 
             removeItem(id, tipo) {
-                if(confirm("Remover este item?")) {
-                    this.state[tipo] = this.state[tipo].filter(item => item.id!== id);
-                    this.saveToDisk();
-                    this.update();
-                }
+                if(confirm("Remover?")) { this.state[tipo] = this.state[tipo].filter(i => i.id!== id); this.autoSalvar(); }
             },
 
             render(containerId, tipo) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = this.state[tipo].map(item => `
-                    <div class="history-item">
-                        <span><strong>${item.desc}</strong> ${tipo === 'cotidiano'? '('+item.data+')' : ''}</span>
-                        <span>
-                            R$ ${item.valor.toFixed(2)}
-                            <span class="delete-btn" onclick="app.removeItem(${item.id}, '${tipo}')">✕</span>
-                        </span>
-                    </div>
-                `).reverse().join('');
+                document.getElementById(containerId).innerHTML = this.state[tipo].map(item => `
+                    <div class="history-item"><span><strong>${item.desc}</strong></span>
+                    <span>R$ ${item.valor.toFixed(2)}<span class="delete-btn" onclick="app.removeItem(${item.id}, '${tipo}')">✕</span></span></div>`).reverse().join('');
             },
 
-            reset() {
-                if(confirm("Zerar todos os dados do app?")) {
-                    localStorage.removeItem('meu_gestor_v2_final');
-                    location.reload();
-                }
-            }
+            reset() { if(confirm("Zerar app?")) { localStorage.removeItem('elvis_gestor_v21'); location.reload(); } }
         };
-
         window.onload = () => app.init();
     </script>
 </body>
