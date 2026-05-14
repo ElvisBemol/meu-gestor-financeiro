@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro Elvis v1.2</title>
+    <title>Gestor Financeiro Elvis v1.3</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; }
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.8rem; }
-       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-       .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid #eee; align-items: center; }
-       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 10px; }
-       .card-resumo { border: 2px solid #eee; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid #eee; align-items: center; }
+      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 5px; }
+      .card-resumo { border: 2px solid #eee; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; background: #fff; }
+      .input-inline { border: none; background: transparent; width: 80px; text-align: right; border-bottom: 1px dashed #ccc; padding: 2px; margin: 0; }
     </style>
 </head>
 <body class="container">
@@ -25,23 +26,25 @@
             <details open>
                 <summary>1. Salários (Renda Mensal)</summary>
                 <div class="grid-inputs">
-                    <div><label>Salário V1</label><input type="number" id="v1" value="2000" oninput="app.update()"></div>
-                    <div><label>Salário V2</label><input type="number" id="v2" value="5000" oninput="app.update()"></div>
+                    <div><label>V1 (R$)</label><input type="number" id="v1" value="2000" oninput="app.update()"></div>
+                    <div><label>V2 (R$)</label><input type="number" id="v2" value="5000" oninput="app.update()"></div>
                 </div>
             </details>
         </section>
 
         <section id="fixos">
-            <details>
-                <summary>2. Gastos Fixos da Residência</summary>
+            <details open>
+                <summary>2. Gastos Fixos (Edite os valores abaixo)</summary>
+                <div id="listaFixos"></div>
+                <hr>
                 <form onsubmit="app.addItem(event, 'fixos')">
+                    <p><small>Adicionar novo item fixo:</small></p>
                     <div class="grid">
-                        <input type="text" id="descFixo" placeholder="Ex: Aluguel" required>
-                        <input type="number" id="valFixo" placeholder="R$ 0,00" step="0.01" required>
-                        <button type="submit">Adicionar Conta</button>
+                        <input type="text" id="descFixo" placeholder="Ex: Academia">
+                        <input type="number" id="valFixo" placeholder="R$ 0,00" step="0.01">
+                        <button type="submit">Adicionar</button>
                     </div>
                 </form>
-                <div id="listaFixos"></div>
             </details>
         </section>
 
@@ -49,31 +52,31 @@
             <div class="card-resumo">
                 <p>Orçamento para gastar <strong>HOJE</strong>:</p>
                 <ins id="valorDiario">R$ 0,00</ins>
-                <div id="infoDivisao" style="font-size: 0.85rem; margin-top: 1rem; color: #666;"></div>
+                <div id="infoDivisao" style="font-size: 0.85rem; margin-top: 1rem; color: #444;"></div>
             </div>
         </section>
 
         <section id="cotidiano">
-            <h3>3. Gastos do Cotidiano</h3>
+            <h3>3. Gastos do Cotidiano (Lançar)</h3>
             <form onsubmit="app.addItem(event, 'cotidiano')">
                 <div class="grid">
                     <input type="text" id="descCotidiano" placeholder="Ex: Padaria" required>
                     <input type="number" id="valCotidiano" placeholder="R$ 0,00" step="0.01" required>
-                    <button type="submit" class="contrast">Lançar Gasto</button>
+                    <button type="submit" class="contrast">Lançar</button>
                 </div>
             </form>
             
             <details>
-                <summary>Histórico de Gastos do Mês</summary>
+                <summary>Histórico de Gastos do Ciclo</summary>
                 <div id="listaCotidiano"></div>
-                <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Resetar Todo o Ciclo</button>
+                <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Limpar Tudo</button>
             </details>
         </section>
     </main>
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_v1.2')) || {
+            state: JSON.parse(localStorage.getItem('gestor_v1.3')) || {
                 fixos:,
                 cotidiano:
             },
@@ -96,10 +99,9 @@
                 const { inicio, fim } = this.getCiclo();
                 
                 const totalSalarios = v1 + v2;
-                const totalFixos = this.state.fixos.reduce((acc, g) => acc + g.valor, 0);
+                const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
                 const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
 
-                // Cálculo Proporcional [31, 10]
                 const p1 = totalSalarios > 0? (v1 / totalSalarios) : 0;
                 const p2 = 1 - p1;
 
@@ -110,33 +112,40 @@
                 const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
-                // UI [22, 2]
                 document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString()} até ${fim.toLocaleDateString()}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
                 document.getElementById('infoDivisao').innerHTML = `
                     <strong>Total Fixos: R$ ${totalFixos.toFixed(2)}</strong><br>
-                    V1 (${(p1*100).toFixed(1)}%) paga: R$ ${(totalFixos * p1).toFixed(2)}<br>
-                    V2 (${(p2*100).toFixed(1)}%) paga: R$ ${(totalFixos * p2).toFixed(2)}<br>
-                    <small>Dias no ciclo: ${diasRestantes} | Já gasto: R$ ${totalCotidiano.toFixed(2)}</small>
+                    V1 paga: R$ ${(totalFixos * p1).toFixed(2)} | V2 paga: R$ ${(totalFixos * p2).toFixed(2)}<br>
+                    <small>Faltam ${diasRestantes} dias | Gasto acumulado: R$ ${totalCotidiano.toFixed(2)}</small>
                 `;
                 
-                this.render('listaFixos', 'fixos');
-                this.render('listaCotidiano', 'cotidiano');
-                localStorage.setItem('gestor_v1.2', JSON.stringify(this.state));
+                this.renderFixos();
+                this.renderCotidiano();
+                localStorage.setItem('gestor_v1.3', JSON.stringify(this.state));
             },
 
             addItem(e, tipo) {
                 e.preventDefault();
                 const descId = tipo === 'fixos'? 'descFixo' : 'descCotidiano';
                 const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
-                
                 const desc = document.getElementById(descId).value;
-                const valor = parseFloat(document.getElementById(valId).value);
+                const valor = parseFloat(document.getElementById(valId).value) || 0;
                 
+                if(!desc && tipo === 'fixos') return;
+
                 this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString() });
                 document.getElementById(descId).value = '';
                 document.getElementById(valId).value = '';
                 this.update();
+            },
+
+            editValorFixo(id, novoValor) {
+                const item = this.state.fixos.find(i => i.id === id);
+                if(item) {
+                    item.valor = parseFloat(novoValor) || 0;
+                    this.update();
+                }
             },
 
             removeItem(id, tipo) {
@@ -144,24 +153,36 @@
                 this.update();
             },
 
-            render(containerId, tipo) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = this.state[tipo].map(item => `
+            renderFixos() {
+                const container = document.getElementById('listaFixos');
+                container.innerHTML = this.state.fixos.map(item => `
                     <div class="history-item">
-                        <span>${item.desc} ${tipo === 'cotidiano'? '('+item.data+')' : ''}</span>
+                        <span>${item.desc}</span>
+                        <span>
+                            R$ <input type="number" step="0.01" class="input-inline" value="${item.valor}" oninput="app.editValorFixo(${item.id}, this.value)">
+                            <span class="delete-btn" onclick="app.removeItem(${item.id}, 'fixos')">✕</span>
+                        </span>
+                    </div>
+                `).join('');
+            },
+
+            renderCotidiano() {
+                const container = document.getElementById('listaCotidiano');
+                container.innerHTML = this.state.cotidiano.map(item => `
+                    <div class="history-item">
+                        <span>${item.desc} (${item.data})</span>
                         <span>
                             R$ ${item.valor.toFixed(2)}
-                            <span class="delete-btn" onclick="app.removeItem(${item.id}, '${tipo}')">✕</span>
+                            <span class="delete-btn" onclick="app.removeItem(${item.id}, 'cotidiano')">✕</span>
                         </span>
                     </div>
                 `).reverse().join('');
             },
 
             reset() {
-                if(confirm("ATENÇÃO: Deseja apagar TODOS os dados e começar um novo ciclo?")) {
-                    this.state.fixos =;
-                    this.state.cotidiano =;
-                    this.update();
+                if(confirm("Deseja apagar TUDO e começar do zero?")) {
+                    localStorage.removeItem('gestor_v1.3');
+                    location.reload();
                 }
             }
         };
