@@ -3,46 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro Elvis v1.3</title>
+    <title>Gestor Financeiro Proporcional</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        :root { --primary: #2ecc71; }
-        ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.8rem; }
-      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-      .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid #eee; align-items: center; }
-      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 5px; }
-      .card-resumo { border: 2px solid #eee; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; background: #fff; }
-      .input-inline { border: none; background: transparent; width: 80px; text-align: right; border-bottom: 1px dashed #ccc; padding: 2px; margin: 0; }
+        :root { --primary: #2ecc71; --primary-hover: #27ae60; }
+        body { padding-bottom: 2rem; }
+        ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
+        
+        /* Ajustes para telas pequenas (Celulares) */
+        @media (max-width: 600px) {
+           .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
+            h1 { font-size: 1.5rem; }
+            ins { font-size: 1.8rem; }
+           .card-resumo { padding: 1rem!important; }
+        }
+
+       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+       .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+       .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
+       .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+       .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
+       .name-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; border: none; border-bottom: 2px solid #eee; width: 100%; }
+        hr { margin: 1.5rem 0; opacity: 0.2; }
     </style>
 </head>
 <body class="container">
-    <header>
+    <header style="margin-top: 1rem;">
         <h1>Gestor Proporcional</h1>
-        <p>Ciclo: <span id="labelCiclo">--/--</span></p>
+        <mark><small>Ciclo: <span id="labelCiclo">--/--</span></small></mark>
     </header>
 
     <main>
         <section id="config">
-            <details open>
-                <summary>1. Salários (Renda Mensal)</summary>
+            <details>
+                <summary role="button" class="outline secondary">1. Configurar Nomes e Salários</summary>
                 <div class="grid-inputs">
-                    <div><label>V1 (R$)</label><input type="number" id="v1" value="2000" oninput="app.update()"></div>
-                    <div><label>V2 (R$)</label><input type="number" id="v2" value="5000" oninput="app.update()"></div>
+                    <article>
+                        <input type="text" id="nomeV1" class="name-header" placeholder="Nome do Integrante 1" oninput="app.update()">
+                        <label>Renda Mensal (R$)</label>
+                        <input type="number" id="rendaV1" value="2000" oninput="app.update()">
+                    </article>
+                    <article>
+                        <input type="text" id="nomeV2" class="name-header" placeholder="Nome do Integrante 2" oninput="app.update()">
+                        <label>Renda Mensal (R$)</label>
+                        <input type="number" id="rendaV2" value="5000" oninput="app.update()">
+                    </article>
                 </div>
             </details>
         </section>
 
         <section id="fixos">
             <details open>
-                <summary>2. Gastos Fixos (Edite os valores abaixo)</summary>
+                <summary role="button" class="outline">2. Contas Fixas (Mês)</summary>
                 <div id="listaFixos"></div>
                 <hr>
                 <form onsubmit="app.addItem(event, 'fixos')">
-                    <p><small>Adicionar novo item fixo:</small></p>
-                    <div class="grid">
-                        <input type="text" id="descFixo" placeholder="Ex: Academia">
-                        <input type="number" id="valFixo" placeholder="R$ 0,00" step="0.01">
-                        <button type="submit">Adicionar</button>
+                    <p><small><strong>Adicionar nova conta:</strong></small></p>
+                    <div class="grid-form">
+                        <div><label>Descrição</label><input type="text" id="descFixo" placeholder="Ex: Aluguel"></div>
+                        <div><label>Valor (R$)</label><input type="number" id="valFixo" placeholder="0,00" step="0.01"></div>
+                        <button type="submit" style="margin-bottom: 4px;">+</button>
                     </div>
                 </form>
             </details>
@@ -50,38 +71,41 @@
 
         <section id="dashboard" style="text-align: center; margin: 2rem 0;">
             <div class="card-resumo">
-                <p>Orçamento para gastar <strong>HOJE</strong>:</p>
+                <p style="margin-bottom: 0; color: #666;">Orçamento disponível para <strong>HOJE</strong>:</p>
                 <ins id="valorDiario">R$ 0,00</ins>
-                <div id="infoDivisao" style="font-size: 0.85rem; margin-top: 1rem; color: #444;"></div>
+                <div id="infoDivisao" style="font-size: 0.9rem; line-height: 1.6; color: #333;"></div>
             </div>
         </section>
 
         <section id="cotidiano">
-            <h3>3. Gastos do Cotidiano (Lançar)</h3>
+            <h3>3. Lançar Gasto de Hoje</h3>
             <form onsubmit="app.addItem(event, 'cotidiano')">
-                <div class="grid">
-                    <input type="text" id="descCotidiano" placeholder="Ex: Padaria" required>
-                    <input type="number" id="valCotidiano" placeholder="R$ 0,00" step="0.01" required>
-                    <button type="submit" class="contrast">Lançar</button>
+                <div class="grid-form">
+                    <div><label>Onde gastou?</label><input type="text" id="descCotidiano" placeholder="Ex: Padaria, Farmácia" required></div>
+                    <div><label>Quanto? (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
+                    <button type="submit" class="contrast" style="margin-bottom: 4px;">Lançar</button>
                 </div>
             </form>
             
             <details>
-                <summary>Histórico de Gastos do Ciclo</summary>
+                <summary>Ver Histórico do Mês</summary>
                 <div id="listaCotidiano"></div>
-                <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Limpar Tudo</button>
+                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Resetar Todo o App</button>
             </details>
         </section>
     </main>
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_v1.3')) || {
+            state: JSON.parse(localStorage.getItem('gestor_v1.5')) || {
+                n1: "Pessoa 1", n2: "Pessoa 2",
                 fixos:,
                 cotidiano:
             },
 
             init() {
+                document.getElementById('nomeV1').value = this.state.n1;
+                document.getElementById('nomeV2').value = this.state.n2;
                 this.update();
             },
 
@@ -94,15 +118,18 @@
             },
 
             update() {
-                const v1 = parseFloat(document.getElementById('v1').value) || 0;
-                const v2 = parseFloat(document.getElementById('v2').value) || 0;
+                this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
+                this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
+                
+                const r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
+                const r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
                 const { inicio, fim } = this.getCiclo();
                 
-                const totalSalarios = v1 + v2;
+                const totalSalarios = r1 + r2;
                 const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
                 const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
 
-                const p1 = totalSalarios > 0? (v1 / totalSalarios) : 0;
+                const p1 = totalSalarios > 0? (r1 / totalSalarios) : 0;
                 const p2 = 1 - p1;
 
                 const hoje = new Date();
@@ -112,17 +139,22 @@
                 const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
-                document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString()} até ${fim.toLocaleDateString()}`;
+                document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                
                 document.getElementById('infoDivisao').innerHTML = `
-                    <strong>Total Fixos: R$ ${totalFixos.toFixed(2)}</strong><br>
-                    V1 paga: R$ ${(totalFixos * p1).toFixed(2)} | V2 paga: R$ ${(totalFixos * p2).toFixed(2)}<br>
-                    <small>Faltam ${diasRestantes} dias | Gasto acumulado: R$ ${totalCotidiano.toFixed(2)}</small>
+                    <hr>
+                    <strong>Total Contas Fixas: R$ ${totalFixos.toFixed(2)}</strong><br>
+                    ${this.state.n1} (${(p1*100).toFixed(0)}%) paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong><br>
+                    ${this.state.n2} (${(p2*100).toFixed(0)}%) paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong><br>
+                    <hr>
+                    <small>Gasto acumulado no ciclo: R$ ${totalCotidiano.toFixed(2)}<br>
+                    Faltam <strong>${diasRestantes} dias</strong> para o novo ciclo.</small>
                 `;
                 
                 this.renderFixos();
                 this.renderCotidiano();
-                localStorage.setItem('gestor_v1.3', JSON.stringify(this.state));
+                localStorage.setItem('gestor_v1.5', JSON.stringify(this.state));
             },
 
             addItem(e, tipo) {
@@ -131,10 +163,8 @@
                 const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
                 const desc = document.getElementById(descId).value;
                 const valor = parseFloat(document.getElementById(valId).value) || 0;
-                
                 if(!desc && tipo === 'fixos') return;
-
-                this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString() });
+                this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString('pt-BR') });
                 document.getElementById(descId).value = '';
                 document.getElementById(valId).value = '';
                 this.update();
@@ -149,8 +179,10 @@
             },
 
             removeItem(id, tipo) {
-                this.state[tipo] = this.state[tipo].filter(item => item.id!== id);
-                this.update();
+                if(confirm("Remover este item?")) {
+                    this.state[tipo] = this.state[tipo].filter(item => item.id!== id);
+                    this.update();
+                }
             },
 
             renderFixos() {
@@ -170,7 +202,7 @@
                 const container = document.getElementById('listaCotidiano');
                 container.innerHTML = this.state.cotidiano.map(item => `
                     <div class="history-item">
-                        <span>${item.desc} (${item.data})</span>
+                        <span><strong>${item.desc}</strong> <small>(${item.data})</small></span>
                         <span>
                             R$ ${item.valor.toFixed(2)}
                             <span class="delete-btn" onclick="app.removeItem(${item.id}, 'cotidiano')">✕</span>
@@ -181,12 +213,11 @@
 
             reset() {
                 if(confirm("Deseja apagar TUDO e começar do zero?")) {
-                    localStorage.removeItem('gestor_v1.3');
+                    localStorage.removeItem('gestor_v1.5');
                     location.reload();
                 }
             }
         };
-
         app.init();
     </script>
 </body>
