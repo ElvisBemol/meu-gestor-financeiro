@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Gestor Proporcional</title>
+    <title>Meu Gestor Financeiro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; --primary-hover: #27ae60; }
@@ -11,19 +11,19 @@
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
         
         @media (max-width: 600px) {
-          .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
+         .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
             h1 { font-size: 1.5rem; }
             ins { font-size: 1.8rem; }
-          .card-resumo { padding: 1rem!important; }
+         .card-resumo { padding: 1rem!important; }
         }
 
-      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-      .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
-      .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
-      .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-      .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
-      .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; }
+     .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+     .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+     .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+     .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
+     .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+     .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
+     .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; }
         hr { margin: 1.5rem 0; opacity: 0.2; }
     </style>
 </head>
@@ -42,13 +42,13 @@
                         <label>Nome do Parceiro 1</label>
                         <input type="text" id="nomeV1" class="name-input" placeholder="Ex: Elvis" oninput="app.update()">
                         <label>Salário (R$)</label>
-                        <input type="number" id="rendaV1" value="2000" oninput="app.update()">
+                        <input type="number" id="rendaV1" oninput="app.update()">
                     </article>
                     <article>
                         <label>Nome do Parceiro 2</label>
                         <input type="text" id="nomeV2" class="name-input" placeholder="Ex: Maria" oninput="app.update()">
                         <label>Salário (R$)</label>
-                        <input type="number" id="rendaV2" value="5000" oninput="app.update()">
+                        <input type="number" id="rendaV2" oninput="app.update()">
                     </article>
                 </div>
             </details>
@@ -97,15 +97,21 @@
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_v1.6')) || {
-                n1: "Pessoa 1", n2: "Pessoa 2",
+            state: JSON.parse(localStorage.getItem('gestor_v1.7')) || {
+                n1: "Pessoa 1", 
+                n2: "Pessoa 2",
+                r1: 2000,
+                r2: 5000,
                 fixos:,
                 cotidiano:
             },
 
             init() {
+                // Preenche os campos com o que estiver salvo no banco de dados 
                 document.getElementById('nomeV1').value = this.state.n1;
                 document.getElementById('nomeV2').value = this.state.n2;
+                document.getElementById('rendaV1').value = this.state.r1;
+                document.getElementById('rendaV2').value = this.state.r2;
                 this.update();
             },
 
@@ -118,18 +124,18 @@
             },
 
             update() {
+                // Salva o que o usuário digitou no estado da aplicação [10]
                 this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
                 this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
+                this.state.r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
+                this.state.r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
                 
-                const r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
-                const r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
                 const { inicio, fim } = this.getCiclo();
-                
-                const totalSalarios = r1 + r2;
+                const totalSalarios = this.state.r1 + this.state.r2;
                 const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
                 const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
 
-                const p1 = totalSalarios > 0? (r1 / totalSalarios) : 0;
+                const p1 = totalSalarios > 0? (this.state.r1 / totalSalarios) : 0;
                 const p2 = 1 - p1;
 
                 const hoje = new Date();
@@ -153,7 +159,9 @@
                 
                 this.renderFixos();
                 this.renderCotidiano();
-                localStorage.setItem('gestor_v1.6', JSON.stringify(this.state));
+                
+                // Grava permanentemente no navegador 
+                localStorage.setItem('gestor_v1.7', JSON.stringify(this.state));
             },
 
             addItem(e, tipo) {
@@ -211,8 +219,8 @@
             },
 
             reset() {
-                if(confirm("Zerar todos os dados do app?")) {
-                    localStorage.removeItem('gestor_v1.6');
+                if(confirm("Deseja apagar TUDO e começar do zero?")) {
+                    localStorage.removeItem('gestor_v1.7');
                     location.reload();
                 }
             }
