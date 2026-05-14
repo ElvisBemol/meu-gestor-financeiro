@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Gestor Financeiro v1.8</title>
+    <title>Gestor Financeiro v1.9</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; --primary-hover: #27ae60; }
@@ -11,21 +11,18 @@
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
         
         @media (max-width: 600px) {
-         .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
-            h1 { font-size: 1.5rem; }
+           .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
             ins { font-size: 1.8rem; }
-         .card-resumo { padding: 1rem!important; }
         }
 
-     .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-     .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
-     .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-     .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
-     .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-     .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
-     .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; background: transparent; }
-     .save-btn { background-color: #3498db; border: none; margin-top: 10px; }
-        hr { margin: 1.5rem 0; opacity: 0.2; }
+       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+       .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+       .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; }
+       .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+       .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
+       .name-input { font-weight: bold; color: #2c3e50; border: none; border-bottom: 2px solid #2ecc71; margin-bottom: 10px; width: 100%; background: #fff; padding: 5px; }
+       .btn-success { background-color: #2ecc71; border: none; }
     </style>
 </head>
 <body class="container">
@@ -36,29 +33,28 @@
 
     <main>
         <section id="config">
-            <details open>
-                <summary role="button" class="outline secondary">1. Nomes e Salários (Configuração)</summary>
+            <article>
+                <header><strong>1. Identificação e Rendas</strong></header>
                 <div class="grid-inputs">
-                    <article>
-                        <label>Quem é o Parceiro 1?</label>
-                        <input type="text" id="nomeV1" class="name-input" placeholder="Digite o nome...">
-                        <label>Salário Mensal (R$)</label>
-                        <input type="number" id="rendaV1" placeholder="0.00">
-                    </article>
-                    <article>
-                        <label>Quem é o Parceiro 2?</label>
-                        <input type="text" id="nomeV2" class="name-input" placeholder="Digite o nome...">
-                        <label>Salário Mensal (R$)</label>
-                        <input type="number" id="rendaV2" placeholder="0.00">
-                    </article>
+                    <div>
+                        <label>Nome 1</label>
+                        <input type="text" id="nomeV1" class="name-input" placeholder="Ex: Elvis" oninput="app.autoSalvar()">
+                        <label>Salário (R$)</label>
+                        <input type="number" id="rendaV1" oninput="app.autoSalvar()">
+                    </div>
+                    <div>
+                        <label>Nome 2</label>
+                        <input type="text" id="nomeV2" class="name-input" placeholder="Ex: Maria" oninput="app.autoSalvar()">
+                        <label>Salário (R$)</label>
+                        <input type="number" id="rendaV2" oninput="app.autoSalvar()">
+                    </div>
                 </div>
-                <button class="save-btn" onclick="app.salvarConfig()">💾 Salvar Configurações</button>
-                <p><small>* Clique em salvar para fixar os nomes e salários.</small></p>
-            </details>
+                <button class="btn-success" onclick="app.forcarSalvar()">💾 SALVAR AGORA</button>
+            </article>
         </section>
 
         <section id="fixos">
-            <details>
+            <details open>
                 <summary role="button" class="outline">2. Contas Fixas do Mês</summary>
                 <div id="listaFixos"></div>
                 <hr>
@@ -91,16 +87,15 @@
             </form>
             
             <details>
-                <summary>Ver Histórico do Ciclo</summary>
+                <summary>Ver Histórico e Opções</summary>
                 <div id="listaCotidiano"></div>
-                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Zerar Tudo e Começar Novo Ciclo</button>
+                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Zerar Tudo</button>
             </details>
         </section>
     </main>
 
     <script>
         const app = {
-            // Estado inicial padrão [18, 19]
             state: {
                 n1: "Pessoa 1", n2: "Pessoa 2",
                 r1: 2000, r2: 5000,
@@ -109,13 +104,12 @@
             },
 
             init() {
-                // Tenta carregar dados do LocalStorage 
-                const salvo = localStorage.getItem('gestor_v1.8');
+                const salvo = localStorage.getItem('gestor_v1.9');
                 if (salvo) {
                     this.state = JSON.parse(salvo);
                 }
 
-                // Preenche OBRIGATORIAMENTE os campos do formulário com o que foi carregado
+                // Preenche os inputs com os dados recuperados
                 document.getElementById('nomeV1').value = this.state.n1;
                 document.getElementById('nomeV2').value = this.state.n2;
                 document.getElementById('rendaV1').value = this.state.r1;
@@ -124,28 +118,30 @@
                 this.update();
             },
 
+            saveToDisk() {
+                localStorage.setItem('gestor_v1.9', JSON.stringify(this.state));
+            },
+
+            autoSalvar() {
+                this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
+                this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
+                this.state.r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
+                this.state.r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
+                this.saveToDisk();
+                this.update();
+            },
+
+            forcarSalvar() {
+                this.autoSalvar();
+                alert("Dados de " + this.state.n1 + " e " + this.state.n2 + " salvos com sucesso!");
+            },
+
             getCiclo() {
                 const hoje = new Date();
                 let inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 5);
                 if (hoje.getDate() < 5) inicio.setMonth(inicio.getMonth() - 1);
                 let fim = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 5);
                 return { inicio, fim };
-            },
-
-            salvarConfig() {
-                // Captura os valores atuais dos inputs de configuração
-                this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
-                this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
-                this.state.r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
-                this.state.r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
-
-                this.saveToDisk();
-                alert("Configurações de " + this.state.n1 + " e " + this.state.n2 + " salvas com sucesso!");
-                this.update();
-            },
-
-            saveToDisk() {
-                localStorage.setItem('gestor_v1.8', JSON.stringify(this.state));
             },
 
             update() {
@@ -164,7 +160,6 @@
                 const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
-                // UI
                 document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
                 
@@ -174,7 +169,7 @@
                     ${this.state.n1} paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong> (${(p1*100).toFixed(0)}%)<br>
                     ${this.state.n2} paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong> (${(p2*100).toFixed(0)}%)<br>
                     <hr>
-                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong> para o novo ciclo.</small>
+                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong></small>
                 `;
                 
                 this.renderFixos();
@@ -187,14 +182,11 @@
                 const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
                 const desc = document.getElementById(descId).value;
                 const valor = parseFloat(document.getElementById(valId).value) || 0;
-                
                 if(!desc && tipo === 'fixos') return;
-                
                 this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString('pt-BR') });
                 document.getElementById(descId).value = '';
                 document.getElementById(valId).value = '';
-                
-                this.saveToDisk(); // Salva automaticamente ao adicionar item
+                this.saveToDisk();
                 this.update();
             },
 
@@ -242,14 +234,13 @@
             },
 
             reset() {
-                if(confirm("Deseja apagar TUDO e zerar o app?")) {
-                    localStorage.removeItem('gestor_v1.8');
+                if(confirm("Zerar todos os dados do app?")) {
+                    localStorage.removeItem('gestor_v1.9');
                     location.reload();
                 }
             }
         };
 
-        // Inicia a aplicação
         app.init();
     </script>
 </body>
