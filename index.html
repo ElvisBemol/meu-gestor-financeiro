@@ -1,1 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Financeiro Elvis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        :root { --primary: #2ecc71; }
+        ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.5rem; }
+       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+       .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 5px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body class="container">
+    <header>
+        <h1>Finanças Proporcionais</h1>
+        <p>Ciclo: <span id="labelCiclo">--/--</span></p>
+    </header>
 
+    <main>
+        <section id="config">
+            <details open>
+                <summary>Configurações de Renda e Fixos</summary>
+                <div class="grid-inputs">
+                    <div><label>Salário V1</label><input type="number" id="v1" value="2000" oninput="app.update()"></div>
+                    <div><label>Salário V2</label><input type="number" id="v2" value="5000" oninput="app.update()"></div>
+                </div>
+                <label>Total de Gastos Fixos (Residência)</label>
+                <input type="number" id="fixos" value="3000" oninput="app.update()">
+            </details>
+        </section>
+
+        <section id="dashboard" style="text-align: center; margin: 2rem 0;">
+            <p>Você pode gastar hoje:</p>
+            <ins id="valorDiario">R$ 0,00</ins>
+            <div id="infoDivisao" style="font-size: 0.8rem; margin-top: 1rem; color: #666;"></div>
+        </section>
+
+        <section id="gastos">
+            <h3>Novo Gasto Diário</h3>
+            <form onsubmit="app.addGasto(event)">
+                <div class="grid">
+                    <input type="text" id="descGasto" placeholder="Ex: Mercado" required>
+                    <input type="number" id="valGasto" placeholder="R$ 0,00" step="0.01" required>
+                    <button type="submit">Adicionar</button>
+                </div>
+            </form>
+            
+            <h3>Histórico do Ciclo</h3>
+            <div id="listaGastos"></div>
+            <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Resetar Ciclo</button>
+        </section>
+    </main>
+
+    <script>
+        const app = {
+            state: JSON.parse(localStorage.getItem('gestor_elvis')) || {
+                gastos:
+            },
+
+            init() {
+                this.update();
+            },
+
+            getCiclo() {
+                const hoje = new Date();
+                let inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 5);
+                if (hoje.getDate() < 5) inicio.setMonth(inicio.getMonth() - 1);
+                
+                let fim = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 5);
+                return { inicio, fim };
+            },
+
+            update() {
+                const v1 = parseFloat(document.getElementById('v1').value) || 0;
+                const v2 = parseFloat(document.getElementById('v2').value) || 0;
+                const fixos = parseFloat(document.getElementById('fixos').value) || 0;
+                const { inicio, fim } = this.getCiclo();
+                
+                const totalSalarios = v1 + v2;
+                const shareV1 = fixos * (v1 / totalSalarios);
+                const shareV2 = fixos * (v2 / totalSalarios);
+
+                const hoje = new Date();
+                hoje.setHours(0,0,0,0);
+                const diasRestantes = Math.max(1, Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24)));
+                
+                const totalGastoCotidiano = this.state.gastos.reduce((acc, g) => acc + g.valor, 0);
+                const saldoParaCotidiano = totalSalarios - fixos - totalGastoCotidiano;
+                const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
+
+                // UI
+                document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString()} até ${fim.toLocaleDateString()}`;
+                document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                document.getElementById('infoDivisao').innerHTML = `
+                    Divisão Justa: V1 paga R$ ${shareV1.toFixed(2)} | V2 paga R$ ${shareV2.toFixed(2)}<br>
+                    Dias restantes: ${diasRestantes} | Total gasto: R$ ${totalGastoCotidiano.toFixed(2)}
+                `;
+                
+                this.renderGastos();
+                localStorage.setItem('gestor_elvis', JSON.stringify(this.state));
+            },
+
+            addGasto(e) {
+                e.preventDefault();
+                const desc = document.getElementById('descGasto').value;
+                const valor = parseFloat(document.getElementById('valGasto').value);
+                this.state.gastos.push({ desc, valor, data: new Date().toLocaleDateString() });
+                document.getElementById('descGasto').value = '';
+                document.getElementById('valGasto').value = '';
+                this.update();
+            },
+
+            renderGastos() {
+                const container = document.getElementById('listaGastos');
+                container.innerHTML = this.state.gastos.map((g, i) => `
+                    <div class="history-item">
+                        <span>${g.desc} (${g.data})</span>
+                        <span>R$ ${g.valor.toFixed(2)}</span>
+                    </div>
+                `).reverse().join('');
+            },
+
+            reset() {
+                if(confirm("Deseja limpar todos os gastos deste ciclo?")) {
+                    this.state.gastos =;
+                    this.update();
+                }
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
