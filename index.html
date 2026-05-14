@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro Proporcional</title>
+    <title>Meu Gestor Proporcional</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; --primary-hover: #27ae60; }
         body { padding-bottom: 2rem; }
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
         
-        /* Ajustes para telas pequenas (Celulares) */
         @media (max-width: 600px) {
-           .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
+          .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
             h1 { font-size: 1.5rem; }
             ins { font-size: 1.8rem; }
-           .card-resumo { padding: 1rem!important; }
+          .card-resumo { padding: 1rem!important; }
         }
 
-       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-       .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
-       .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
-       .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-       .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
-       .name-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; border: none; border-bottom: 2px solid #eee; width: 100%; }
+      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+      .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+      .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
+      .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+      .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
+      .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; }
         hr { margin: 1.5rem 0; opacity: 0.2; }
     </style>
 </head>
@@ -36,17 +35,19 @@
 
     <main>
         <section id="config">
-            <details>
-                <summary role="button" class="outline secondary">1. Configurar Nomes e Salários</summary>
+            <details open>
+                <summary role="button" class="outline secondary">1. Nomes e Salários</summary>
                 <div class="grid-inputs">
                     <article>
-                        <input type="text" id="nomeV1" class="name-header" placeholder="Nome do Integrante 1" oninput="app.update()">
-                        <label>Renda Mensal (R$)</label>
+                        <label>Nome do Parceiro 1</label>
+                        <input type="text" id="nomeV1" class="name-input" placeholder="Ex: Elvis" oninput="app.update()">
+                        <label>Salário (R$)</label>
                         <input type="number" id="rendaV1" value="2000" oninput="app.update()">
                     </article>
                     <article>
-                        <input type="text" id="nomeV2" class="name-header" placeholder="Nome do Integrante 2" oninput="app.update()">
-                        <label>Renda Mensal (R$)</label>
+                        <label>Nome do Parceiro 2</label>
+                        <input type="text" id="nomeV2" class="name-input" placeholder="Ex: Maria" oninput="app.update()">
+                        <label>Salário (R$)</label>
                         <input type="number" id="rendaV2" value="5000" oninput="app.update()">
                     </article>
                 </div>
@@ -59,9 +60,8 @@
                 <div id="listaFixos"></div>
                 <hr>
                 <form onsubmit="app.addItem(event, 'fixos')">
-                    <p><small><strong>Adicionar nova conta:</strong></small></p>
                     <div class="grid-form">
-                        <div><label>Descrição</label><input type="text" id="descFixo" placeholder="Ex: Aluguel"></div>
+                        <div><label>Nova Conta</label><input type="text" id="descFixo" placeholder="Ex: Aluguel"></div>
                         <div><label>Valor (R$)</label><input type="number" id="valFixo" placeholder="0,00" step="0.01"></div>
                         <button type="submit" style="margin-bottom: 4px;">+</button>
                     </div>
@@ -73,16 +73,16 @@
             <div class="card-resumo">
                 <p style="margin-bottom: 0; color: #666;">Orçamento disponível para <strong>HOJE</strong>:</p>
                 <ins id="valorDiario">R$ 0,00</ins>
-                <div id="infoDivisao" style="font-size: 0.9rem; line-height: 1.6; color: #333;"></div>
+                <div id="infoDivisao" style="font-size: 0.95rem; line-height: 1.6; color: #333;"></div>
             </div>
         </section>
 
         <section id="cotidiano">
-            <h3>3. Lançar Gasto de Hoje</h3>
+            <h3>3. Lançar Gasto Diário</h3>
             <form onsubmit="app.addItem(event, 'cotidiano')">
                 <div class="grid-form">
-                    <div><label>Onde gastou?</label><input type="text" id="descCotidiano" placeholder="Ex: Padaria, Farmácia" required></div>
-                    <div><label>Quanto? (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
+                    <div><label>Descrição</label><input type="text" id="descCotidiano" placeholder="Ex: Padaria" required></div>
+                    <div><label>Valor (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
                     <button type="submit" class="contrast" style="margin-bottom: 4px;">Lançar</button>
                 </div>
             </form>
@@ -90,14 +90,14 @@
             <details>
                 <summary>Ver Histórico do Mês</summary>
                 <div id="listaCotidiano"></div>
-                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Resetar Todo o App</button>
+                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Zerar Tudo</button>
             </details>
         </section>
     </main>
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_v1.5')) || {
+            state: JSON.parse(localStorage.getItem('gestor_v1.6')) || {
                 n1: "Pessoa 1", n2: "Pessoa 2",
                 fixos:,
                 cotidiano:
@@ -145,16 +145,15 @@
                 document.getElementById('infoDivisao').innerHTML = `
                     <hr>
                     <strong>Total Contas Fixas: R$ ${totalFixos.toFixed(2)}</strong><br>
-                    ${this.state.n1} (${(p1*100).toFixed(0)}%) paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong><br>
-                    ${this.state.n2} (${(p2*100).toFixed(0)}%) paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong><br>
+                    ${this.state.n1} paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong> (${(p1*100).toFixed(0)}%)<br>
+                    ${this.state.n2} paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong> (${(p2*100).toFixed(0)}%)<br>
                     <hr>
-                    <small>Gasto acumulado no ciclo: R$ ${totalCotidiano.toFixed(2)}<br>
-                    Faltam <strong>${diasRestantes} dias</strong> para o novo ciclo.</small>
+                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong></small>
                 `;
                 
                 this.renderFixos();
                 this.renderCotidiano();
-                localStorage.setItem('gestor_v1.5', JSON.stringify(this.state));
+                localStorage.setItem('gestor_v1.6', JSON.stringify(this.state));
             },
 
             addItem(e, tipo) {
@@ -212,8 +211,8 @@
             },
 
             reset() {
-                if(confirm("Deseja apagar TUDO e começar do zero?")) {
-                    localStorage.removeItem('gestor_v1.5');
+                if(confirm("Zerar todos os dados do app?")) {
+                    localStorage.removeItem('gestor_v1.6');
                     location.reload();
                 }
             }
