@@ -3,26 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro v1.9</title>
+    <title>Gestor Financeiro v2.0</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        :root { --primary: #2ecc71; --primary-hover: #27ae60; }
+        :root { --primary: #2ecc71; }
         body { padding-bottom: 2rem; background-color: #f4f7f6; }
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
         
         @media (max-width: 600px) {
-           .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
+          .grid-inputs,.grid-form { grid-template-columns: 1fr!important; }
             ins { font-size: 1.8rem; }
         }
 
-       .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-       .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
-       .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; }
-       .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-       .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
-       .name-input { font-weight: bold; color: #2c3e50; border: none; border-bottom: 2px solid #2ecc71; margin-bottom: 10px; width: 100%; background: #fff; padding: 5px; }
-       .btn-success { background-color: #2ecc71; border: none; }
+      .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+      .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
+      .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; }
+      .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+      .name-input { font-weight: bold; color: #2c3e50; border: none; border-bottom: 2px solid #2ecc71; margin-bottom: 10px; width: 100%; background: #fff; padding: 5px; }
+      .btn-save { background-color: #2ecc71; border: none; font-weight: bold; }
     </style>
 </head>
 <body class="container">
@@ -38,18 +37,18 @@
                 <div class="grid-inputs">
                     <div>
                         <label>Nome 1</label>
-                        <input type="text" id="nomeV1" class="name-input" placeholder="Ex: Elvis" oninput="app.autoSalvar()">
+                        <input type="text" id="nomeV1" class="name-input" oninput="app.autoSalvar()">
                         <label>Salário (R$)</label>
                         <input type="number" id="rendaV1" oninput="app.autoSalvar()">
                     </div>
                     <div>
                         <label>Nome 2</label>
-                        <input type="text" id="nomeV2" class="name-input" placeholder="Ex: Maria" oninput="app.autoSalvar()">
+                        <input type="text" id="nomeV2" class="name-input" oninput="app.autoSalvar()">
                         <label>Salário (R$)</label>
                         <input type="number" id="rendaV2" oninput="app.autoSalvar()">
                     </div>
                 </div>
-                <button class="btn-success" onclick="app.forcarSalvar()">💾 SALVAR AGORA</button>
+                <button class="btn-save" onclick="app.forcarSalvar()">💾 SALVAR E FIXAR TUDO</button>
             </article>
         </section>
 
@@ -80,8 +79,8 @@
             <h3>3. Lançar Gasto de Hoje</h3>
             <form onsubmit="app.addItem(event, 'cotidiano')">
                 <div class="grid-form">
-                    <div><label>Descrição</label><input type="text" id="descCotidiano" placeholder="Ex: Mercado" required></div>
-                    <div><label>Valor (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
+                    <div><label>Onde gastou?</label><input type="text" id="descCotidiano" placeholder="Ex: Padaria" required></div>
+                    <div><label>Quanto? (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
                     <button type="submit" class="contrast" style="margin-bottom: 4px;">Lançar</button>
                 </div>
             </form>
@@ -104,22 +103,19 @@
             },
 
             init() {
-                const salvo = localStorage.getItem('gestor_v1.9');
+                // Carregamento prioritário
+                const salvo = localStorage.getItem('meu_gestor_v2_final');
                 if (salvo) {
                     this.state = JSON.parse(salvo);
                 }
 
-                // Preenche os inputs com os dados recuperados
+                // Injeta os valores nos inputs IMEDIATAMENTE
                 document.getElementById('nomeV1').value = this.state.n1;
                 document.getElementById('nomeV2').value = this.state.n2;
                 document.getElementById('rendaV1').value = this.state.r1;
                 document.getElementById('rendaV2').value = this.state.r2;
 
                 this.update();
-            },
-
-            saveToDisk() {
-                localStorage.setItem('gestor_v1.9', JSON.stringify(this.state));
             },
 
             autoSalvar() {
@@ -133,7 +129,11 @@
 
             forcarSalvar() {
                 this.autoSalvar();
-                alert("Dados de " + this.state.n1 + " e " + this.state.n2 + " salvos com sucesso!");
+                alert("As configurações de " + this.state.n1 + " e " + this.state.n2 + " foram salvas com sucesso!");
+            },
+
+            saveToDisk() {
+                localStorage.setItem('meu_gestor_v2_final', JSON.stringify(this.state));
             },
 
             getCiclo() {
@@ -146,9 +146,9 @@
 
             update() {
                 const { inicio, fim } = this.getCiclo();
-                const totalSalarios = this.state.r1 + this.state.r2;
                 const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
                 const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
+                const totalSalarios = this.state.r1 + this.state.r2;
 
                 const p1 = totalSalarios > 0? (this.state.r1 / totalSalarios) : 0;
                 const p2 = 1 - p1;
@@ -156,7 +156,6 @@
                 const hoje = new Date();
                 hoje.setHours(0,0,0,0);
                 const diasRestantes = Math.max(1, Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24)));
-                
                 const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
@@ -172,8 +171,8 @@
                     <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong></small>
                 `;
                 
-                this.renderFixos();
-                this.renderCotidiano();
+                this.render('listaFixos', 'fixos');
+                this.render('listaCotidiano', 'cotidiano');
             },
 
             addItem(e, tipo) {
@@ -183,20 +182,12 @@
                 const desc = document.getElementById(descId).value;
                 const valor = parseFloat(document.getElementById(valId).value) || 0;
                 if(!desc && tipo === 'fixos') return;
+
                 this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString('pt-BR') });
                 document.getElementById(descId).value = '';
                 document.getElementById(valId).value = '';
                 this.saveToDisk();
                 this.update();
-            },
-
-            editValorFixo(id, novoValor) {
-                const item = this.state.fixos.find(i => i.id === id);
-                if(item) {
-                    item.valor = parseFloat(novoValor) || 0;
-                    this.saveToDisk();
-                    this.update();
-                }
             },
 
             removeItem(id, tipo) {
@@ -207,27 +198,14 @@
                 }
             },
 
-            renderFixos() {
-                const container = document.getElementById('listaFixos');
-                container.innerHTML = this.state.fixos.map(item => `
+            render(containerId, tipo) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = this.state[tipo].map(item => `
                     <div class="history-item">
-                        <span>${item.desc}</span>
-                        <span>
-                            R$ <input type="number" step="0.01" class="input-inline" value="${item.valor}" onchange="app.editValorFixo(${item.id}, this.value)">
-                            <span class="delete-btn" onclick="app.removeItem(${item.id}, 'fixos')">✕</span>
-                        </span>
-                    </div>
-                `).join('');
-            },
-
-            renderCotidiano() {
-                const container = document.getElementById('listaCotidiano');
-                container.innerHTML = this.state.cotidiano.map(item => `
-                    <div class="history-item">
-                        <span><strong>${item.desc}</strong> <small>(${item.data})</small></span>
+                        <span><strong>${item.desc}</strong> ${tipo === 'cotidiano'? '('+item.data+')' : ''}</span>
                         <span>
                             R$ ${item.valor.toFixed(2)}
-                            <span class="delete-btn" onclick="app.removeItem(${item.id}, 'cotidiano')">✕</span>
+                            <span class="delete-btn" onclick="app.removeItem(${item.id}, '${tipo}')">✕</span>
                         </span>
                     </div>
                 `).reverse().join('');
@@ -235,13 +213,13 @@
 
             reset() {
                 if(confirm("Zerar todos os dados do app?")) {
-                    localStorage.removeItem('gestor_v1.9');
+                    localStorage.removeItem('meu_gestor_v2_final');
                     location.reload();
                 }
             }
         };
 
-        app.init();
+        window.onload = () => app.init();
     </script>
 </body>
 </html>
