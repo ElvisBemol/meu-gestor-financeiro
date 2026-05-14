@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Gestor Financeiro</title>
+    <title>Meu Gestor Financeiro v1.8</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; --primary-hover: #27ae60; }
-        body { padding-bottom: 2rem; }
+        body { padding-bottom: 2rem; background-color: #f4f7f6; }
         ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 2.2rem; display: block; margin: 0.5rem 0; }
         
         @media (max-width: 600px) {
@@ -21,9 +21,10 @@
      .grid-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: end; }
      .history-item { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
      .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 15px; padding: 8px; border: 1px solid #f8d7da; border-radius: 4px; line-height: 1; }
-     .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+     .card-resumo { border: 2px solid #e0e0e0; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
      .input-inline { border: none!important; background: #f9f9f9!important; width: 90px!important; text-align: right; border-bottom: 2px dashed #ccc!important; padding: 4px!important; margin: 0!important; }
-     .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; }
+     .name-input { font-weight: bold; color: var(--primary); border: none; border-bottom: 2px solid #eee; margin-bottom: 10px; width: 100%; background: transparent; }
+     .save-btn { background-color: #3498db; border: none; margin-top: 10px; }
         hr { margin: 1.5rem 0; opacity: 0.2; }
     </style>
 </head>
@@ -36,32 +37,34 @@
     <main>
         <section id="config">
             <details open>
-                <summary role="button" class="outline secondary">1. Nomes e Salários</summary>
+                <summary role="button" class="outline secondary">1. Nomes e Salários (Configuração)</summary>
                 <div class="grid-inputs">
                     <article>
-                        <label>Nome do Parceiro 1</label>
-                        <input type="text" id="nomeV1" class="name-input" placeholder="Ex: Elvis" oninput="app.update()">
-                        <label>Salário (R$)</label>
-                        <input type="number" id="rendaV1" oninput="app.update()">
+                        <label>Quem é o Parceiro 1?</label>
+                        <input type="text" id="nomeV1" class="name-input" placeholder="Digite o nome...">
+                        <label>Salário Mensal (R$)</label>
+                        <input type="number" id="rendaV1" placeholder="0.00">
                     </article>
                     <article>
-                        <label>Nome do Parceiro 2</label>
-                        <input type="text" id="nomeV2" class="name-input" placeholder="Ex: Maria" oninput="app.update()">
-                        <label>Salário (R$)</label>
-                        <input type="number" id="rendaV2" oninput="app.update()">
+                        <label>Quem é o Parceiro 2?</label>
+                        <input type="text" id="nomeV2" class="name-input" placeholder="Digite o nome...">
+                        <label>Salário Mensal (R$)</label>
+                        <input type="number" id="rendaV2" placeholder="0.00">
                     </article>
                 </div>
+                <button class="save-btn" onclick="app.salvarConfig()">💾 Salvar Configurações</button>
+                <p><small>* Clique em salvar para fixar os nomes e salários.</small></p>
             </details>
         </section>
 
         <section id="fixos">
-            <details open>
-                <summary role="button" class="outline">2. Contas Fixas (Mês)</summary>
+            <details>
+                <summary role="button" class="outline">2. Contas Fixas do Mês</summary>
                 <div id="listaFixos"></div>
                 <hr>
                 <form onsubmit="app.addItem(event, 'fixos')">
                     <div class="grid-form">
-                        <div><label>Nova Conta</label><input type="text" id="descFixo" placeholder="Ex: Aluguel"></div>
+                        <div><label>Descrição</label><input type="text" id="descFixo" placeholder="Ex: Aluguel"></div>
                         <div><label>Valor (R$)</label><input type="number" id="valFixo" placeholder="0,00" step="0.01"></div>
                         <button type="submit" style="margin-bottom: 4px;">+</button>
                     </div>
@@ -78,40 +81,46 @@
         </section>
 
         <section id="cotidiano">
-            <h3>3. Lançar Gasto Diário</h3>
+            <h3>3. Lançar Gasto de Hoje</h3>
             <form onsubmit="app.addItem(event, 'cotidiano')">
                 <div class="grid-form">
-                    <div><label>Descrição</label><input type="text" id="descCotidiano" placeholder="Ex: Padaria" required></div>
+                    <div><label>Descrição</label><input type="text" id="descCotidiano" placeholder="Ex: Mercado" required></div>
                     <div><label>Valor (R$)</label><input type="number" id="valCotidiano" placeholder="0,00" step="0.01" required></div>
                     <button type="submit" class="contrast" style="margin-bottom: 4px;">Lançar</button>
                 </div>
             </form>
             
             <details>
-                <summary>Ver Histórico do Mês</summary>
+                <summary>Ver Histórico do Ciclo</summary>
                 <div id="listaCotidiano"></div>
-                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Zerar Tudo</button>
+                <button class="outline secondary" style="margin-top: 2rem; width: 100%;" onclick="app.reset()">Zerar Tudo e Começar Novo Ciclo</button>
             </details>
         </section>
     </main>
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_v1.7')) || {
-                n1: "Pessoa 1", 
-                n2: "Pessoa 2",
-                r1: 2000,
-                r2: 5000,
+            // Estado inicial padrão [18, 19]
+            state: {
+                n1: "Pessoa 1", n2: "Pessoa 2",
+                r1: 2000, r2: 5000,
                 fixos:,
                 cotidiano:
             },
 
             init() {
-                // Preenche os campos com o que estiver salvo no banco de dados 
+                // Tenta carregar dados do LocalStorage 
+                const salvo = localStorage.getItem('gestor_v1.8');
+                if (salvo) {
+                    this.state = JSON.parse(salvo);
+                }
+
+                // Preenche OBRIGATORIAMENTE os campos do formulário com o que foi carregado
                 document.getElementById('nomeV1').value = this.state.n1;
                 document.getElementById('nomeV2').value = this.state.n2;
                 document.getElementById('rendaV1').value = this.state.r1;
                 document.getElementById('rendaV2').value = this.state.r2;
+
                 this.update();
             },
 
@@ -123,13 +132,23 @@
                 return { inicio, fim };
             },
 
-            update() {
-                // Salva o que o usuário digitou no estado da aplicação [10]
+            salvarConfig() {
+                // Captura os valores atuais dos inputs de configuração
                 this.state.n1 = document.getElementById('nomeV1').value || "Pessoa 1";
                 this.state.n2 = document.getElementById('nomeV2').value || "Pessoa 2";
                 this.state.r1 = parseFloat(document.getElementById('rendaV1').value) || 0;
                 this.state.r2 = parseFloat(document.getElementById('rendaV2').value) || 0;
-                
+
+                this.saveToDisk();
+                alert("Configurações de " + this.state.n1 + " e " + this.state.n2 + " salvas com sucesso!");
+                this.update();
+            },
+
+            saveToDisk() {
+                localStorage.setItem('gestor_v1.8', JSON.stringify(this.state));
+            },
+
+            update() {
                 const { inicio, fim } = this.getCiclo();
                 const totalSalarios = this.state.r1 + this.state.r2;
                 const totalFixos = this.state.fixos.reduce((acc, g) => acc + parseFloat(g.valor || 0), 0);
@@ -145,6 +164,7 @@
                 const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
+                // UI
                 document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString('pt-BR')} até ${fim.toLocaleDateString('pt-BR')}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
                 
@@ -154,14 +174,11 @@
                     ${this.state.n1} paga: <strong>R$ ${(totalFixos * p1).toFixed(2)}</strong> (${(p1*100).toFixed(0)}%)<br>
                     ${this.state.n2} paga: <strong>R$ ${(totalFixos * p2).toFixed(2)}</strong> (${(p2*100).toFixed(0)}%)<br>
                     <hr>
-                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong></small>
+                    <small>Gasto acumulado: R$ ${totalCotidiano.toFixed(2)} | Faltam <strong>${diasRestantes} dias</strong> para o novo ciclo.</small>
                 `;
                 
                 this.renderFixos();
                 this.renderCotidiano();
-                
-                // Grava permanentemente no navegador 
-                localStorage.setItem('gestor_v1.7', JSON.stringify(this.state));
             },
 
             addItem(e, tipo) {
@@ -170,10 +187,14 @@
                 const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
                 const desc = document.getElementById(descId).value;
                 const valor = parseFloat(document.getElementById(valId).value) || 0;
+                
                 if(!desc && tipo === 'fixos') return;
+                
                 this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString('pt-BR') });
                 document.getElementById(descId).value = '';
                 document.getElementById(valId).value = '';
+                
+                this.saveToDisk(); // Salva automaticamente ao adicionar item
                 this.update();
             },
 
@@ -181,6 +202,7 @@
                 const item = this.state.fixos.find(i => i.id === id);
                 if(item) {
                     item.valor = parseFloat(novoValor) || 0;
+                    this.saveToDisk();
                     this.update();
                 }
             },
@@ -188,6 +210,7 @@
             removeItem(id, tipo) {
                 if(confirm("Remover este item?")) {
                     this.state[tipo] = this.state[tipo].filter(item => item.id!== id);
+                    this.saveToDisk();
                     this.update();
                 }
             },
@@ -198,7 +221,7 @@
                     <div class="history-item">
                         <span>${item.desc}</span>
                         <span>
-                            R$ <input type="number" step="0.01" class="input-inline" value="${item.valor}" oninput="app.editValorFixo(${item.id}, this.value)">
+                            R$ <input type="number" step="0.01" class="input-inline" value="${item.valor}" onchange="app.editValorFixo(${item.id}, this.value)">
                             <span class="delete-btn" onclick="app.removeItem(${item.id}, 'fixos')">✕</span>
                         </span>
                     </div>
@@ -219,12 +242,14 @@
             },
 
             reset() {
-                if(confirm("Deseja apagar TUDO e começar do zero?")) {
-                    localStorage.removeItem('gestor_v1.7');
+                if(confirm("Deseja apagar TUDO e zerar o app?")) {
+                    localStorage.removeItem('gestor_v1.8');
                     location.reload();
                 }
             }
         };
+
+        // Inicia a aplicação
         app.init();
     </script>
 </body>
