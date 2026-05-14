@@ -3,60 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor Financeiro Elvis</title>
+    <title>Gestor Financeiro Elvis v1.2</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         :root { --primary: #2ecc71; }
-        ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.5rem; }
+        ins { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.8rem; }
        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-       .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 5px 0; border-bottom: 1px solid #eee; }
+       .history-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid #eee; align-items: center; }
+       .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; margin-left: 10px; }
+       .card-resumo { border: 2px solid #eee; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
     </style>
 </head>
 <body class="container">
     <header>
-        <h1>Finanças Proporcionais</h1>
+        <h1>Gestor Proporcional</h1>
         <p>Ciclo: <span id="labelCiclo">--/--</span></p>
     </header>
 
     <main>
         <section id="config">
             <details open>
-                <summary>Configurações de Renda e Fixos</summary>
+                <summary>1. Salários (Renda Mensal)</summary>
                 <div class="grid-inputs">
                     <div><label>Salário V1</label><input type="number" id="v1" value="2000" oninput="app.update()"></div>
                     <div><label>Salário V2</label><input type="number" id="v2" value="5000" oninput="app.update()"></div>
                 </div>
-                <label>Total de Gastos Fixos (Residência)</label>
-                <input type="number" id="fixos" value="3000" oninput="app.update()">
+            </details>
+        </section>
+
+        <section id="fixos">
+            <details>
+                <summary>2. Gastos Fixos da Residência</summary>
+                <form onsubmit="app.addItem(event, 'fixos')">
+                    <div class="grid">
+                        <input type="text" id="descFixo" placeholder="Ex: Aluguel" required>
+                        <input type="number" id="valFixo" placeholder="R$ 0,00" step="0.01" required>
+                        <button type="submit">Adicionar Conta</button>
+                    </div>
+                </form>
+                <div id="listaFixos"></div>
             </details>
         </section>
 
         <section id="dashboard" style="text-align: center; margin: 2rem 0;">
-            <p>Você pode gastar hoje:</p>
-            <ins id="valorDiario">R$ 0,00</ins>
-            <div id="infoDivisao" style="font-size: 0.8rem; margin-top: 1rem; color: #666;"></div>
+            <div class="card-resumo">
+                <p>Orçamento para gastar <strong>HOJE</strong>:</p>
+                <ins id="valorDiario">R$ 0,00</ins>
+                <div id="infoDivisao" style="font-size: 0.85rem; margin-top: 1rem; color: #666;"></div>
+            </div>
         </section>
 
-        <section id="gastos">
-            <h3>Novo Gasto Diário</h3>
-            <form onsubmit="app.addGasto(event)">
+        <section id="cotidiano">
+            <h3>3. Gastos do Cotidiano</h3>
+            <form onsubmit="app.addItem(event, 'cotidiano')">
                 <div class="grid">
-                    <input type="text" id="descGasto" placeholder="Ex: Mercado" required>
-                    <input type="number" id="valGasto" placeholder="R$ 0,00" step="0.01" required>
-                    <button type="submit">Adicionar</button>
+                    <input type="text" id="descCotidiano" placeholder="Ex: Padaria" required>
+                    <input type="number" id="valCotidiano" placeholder="R$ 0,00" step="0.01" required>
+                    <button type="submit" class="contrast">Lançar Gasto</button>
                 </div>
             </form>
             
-            <h3>Histórico do Ciclo</h3>
-            <div id="listaGastos"></div>
-            <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Resetar Ciclo</button>
+            <details>
+                <summary>Histórico de Gastos do Mês</summary>
+                <div id="listaCotidiano"></div>
+                <button class="outline secondary" style="margin-top: 1rem;" onclick="app.reset()">Resetar Todo o Ciclo</button>
+            </details>
         </section>
     </main>
 
     <script>
         const app = {
-            state: JSON.parse(localStorage.getItem('gestor_elvis')) || {
-                gastos:
+            state: JSON.parse(localStorage.getItem('gestor_v1.2')) || {
+                fixos:,
+                cotidiano:
             },
 
             init() {
@@ -67,7 +86,6 @@
                 const hoje = new Date();
                 let inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 5);
                 if (hoje.getDate() < 5) inicio.setMonth(inicio.getMonth() - 1);
-                
                 let fim = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 5);
                 return { inicio, fim };
             },
@@ -75,56 +93,74 @@
             update() {
                 const v1 = parseFloat(document.getElementById('v1').value) || 0;
                 const v2 = parseFloat(document.getElementById('v2').value) || 0;
-                const fixos = parseFloat(document.getElementById('fixos').value) || 0;
                 const { inicio, fim } = this.getCiclo();
                 
                 const totalSalarios = v1 + v2;
-                const shareV1 = fixos * (v1 / totalSalarios);
-                const shareV2 = fixos * (v2 / totalSalarios);
+                const totalFixos = this.state.fixos.reduce((acc, g) => acc + g.valor, 0);
+                const totalCotidiano = this.state.cotidiano.reduce((acc, g) => acc + g.valor, 0);
+
+                // Cálculo Proporcional [31, 10]
+                const p1 = totalSalarios > 0? (v1 / totalSalarios) : 0;
+                const p2 = 1 - p1;
 
                 const hoje = new Date();
                 hoje.setHours(0,0,0,0);
                 const diasRestantes = Math.max(1, Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24)));
                 
-                const totalGastoCotidiano = this.state.gastos.reduce((acc, g) => acc + g.valor, 0);
-                const saldoParaCotidiano = totalSalarios - fixos - totalGastoCotidiano;
+                const saldoParaCotidiano = totalSalarios - totalFixos - totalCotidiano;
                 const diario = Math.max(0, saldoParaCotidiano / diasRestantes);
 
-                // UI
+                // UI [22, 2]
                 document.getElementById('labelCiclo').innerText = `${inicio.toLocaleDateString()} até ${fim.toLocaleDateString()}`;
                 document.getElementById('valorDiario').innerText = `R$ ${diario.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
                 document.getElementById('infoDivisao').innerHTML = `
-                    Divisão Justa: V1 paga R$ ${shareV1.toFixed(2)} | V2 paga R$ ${shareV2.toFixed(2)}<br>
-                    Dias restantes: ${diasRestantes} | Total gasto: R$ ${totalGastoCotidiano.toFixed(2)}
+                    <strong>Total Fixos: R$ ${totalFixos.toFixed(2)}</strong><br>
+                    V1 (${(p1*100).toFixed(1)}%) paga: R$ ${(totalFixos * p1).toFixed(2)}<br>
+                    V2 (${(p2*100).toFixed(1)}%) paga: R$ ${(totalFixos * p2).toFixed(2)}<br>
+                    <small>Dias no ciclo: ${diasRestantes} | Já gasto: R$ ${totalCotidiano.toFixed(2)}</small>
                 `;
                 
-                this.renderGastos();
-                localStorage.setItem('gestor_elvis', JSON.stringify(this.state));
+                this.render('listaFixos', 'fixos');
+                this.render('listaCotidiano', 'cotidiano');
+                localStorage.setItem('gestor_v1.2', JSON.stringify(this.state));
             },
 
-            addGasto(e) {
+            addItem(e, tipo) {
                 e.preventDefault();
-                const desc = document.getElementById('descGasto').value;
-                const valor = parseFloat(document.getElementById('valGasto').value);
-                this.state.gastos.push({ desc, valor, data: new Date().toLocaleDateString() });
-                document.getElementById('descGasto').value = '';
-                document.getElementById('valGasto').value = '';
+                const descId = tipo === 'fixos'? 'descFixo' : 'descCotidiano';
+                const valId = tipo === 'fixos'? 'valFixo' : 'valCotidiano';
+                
+                const desc = document.getElementById(descId).value;
+                const valor = parseFloat(document.getElementById(valId).value);
+                
+                this.state[tipo].push({ id: Date.now(), desc, valor, data: new Date().toLocaleDateString() });
+                document.getElementById(descId).value = '';
+                document.getElementById(valId).value = '';
                 this.update();
             },
 
-            renderGastos() {
-                const container = document.getElementById('listaGastos');
-                container.innerHTML = this.state.gastos.map((g, i) => `
+            removeItem(id, tipo) {
+                this.state[tipo] = this.state[tipo].filter(item => item.id!== id);
+                this.update();
+            },
+
+            render(containerId, tipo) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = this.state[tipo].map(item => `
                     <div class="history-item">
-                        <span>${g.desc} (${g.data})</span>
-                        <span>R$ ${g.valor.toFixed(2)}</span>
+                        <span>${item.desc} ${tipo === 'cotidiano'? '('+item.data+')' : ''}</span>
+                        <span>
+                            R$ ${item.valor.toFixed(2)}
+                            <span class="delete-btn" onclick="app.removeItem(${item.id}, '${tipo}')">✕</span>
+                        </span>
                     </div>
                 `).reverse().join('');
             },
 
             reset() {
-                if(confirm("Deseja limpar todos os gastos deste ciclo?")) {
-                    this.state.gastos =;
+                if(confirm("ATENÇÃO: Deseja apagar TODOS os dados e começar um novo ciclo?")) {
+                    this.state.fixos =;
+                    this.state.cotidiano =;
                     this.update();
                 }
             }
